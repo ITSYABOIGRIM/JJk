@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>JJK: Cursed Battlefield</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#000;overflow:hidden;font-family:'Inter',sans-serif;cursor:crosshair}
+canvas{display:block;position:absolute;top:0;left:0}
+
+/* SCREENS */
+.screen{position:fixed;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:20;color:#fff}
+
+/* TITLE */
+#sTitle{background:radial-gradient(ellipse at 50% 30%,#2a0030 0%,#050005 60%)}
+#sTitle .logo{font-family:'Bebas Neue',sans-serif;font-size:100px;letter-spacing:12px;color:#e63c3c;text-shadow:0 0 60px #e63c3c,0 0 120px #e63c3c55;line-height:1}
+#sTitle .cursed{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:14px;color:#9b5de5;text-shadow:0 0 20px #9b5de5;margin:4px 0 60px}
+.btn-main{padding:14px 50px;background:none;border:2px solid #e63c3c;color:#e63c3c;font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:4px;cursor:pointer;transition:.3s;position:relative;overflow:hidden}
+.btn-main::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(230,60,60,.2),transparent);transition:.3s}
+.btn-main:hover{background:#e63c3c22;box-shadow:0 0 30px #e63c3c44;color:#ff6666}
+.btn-main:hover::before{left:100%}
+
+/* CHAR SELECT */
+#sChar{background:radial-gradient(ellipse at 50% 20%,#150020 0%,#050005 70%);padding:20px}
+#sChar h2{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:6px;color:#e63c3c;text-shadow:0 0 20px #e63c3c55;margin-bottom:4px}
+#sChar .hint{color:#555;font-size:12px;letter-spacing:2px;margin-bottom:20px}
+#cgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;max-width:820px;margin-bottom:16px}
+.cc{background:rgba(255,255,255,.03);border:1px solid #222;border-radius:8px;padding:12px 8px;cursor:pointer;transition:.2s;text-align:center;position:relative;overflow:hidden}
+.cc::before{content:'';position:absolute;inset:0;opacity:0;transition:.2s}
+.cc:hover,.cc.sel{border-color:var(--cc);box-shadow:0 0 16px var(--cc-a)}
+.cc:hover::before,.cc.sel::before{opacity:1;background:var(--cc-bg)}
+.cc .ico{width:44px;height:44px;border-radius:50%;margin:0 auto 8px;border:2px solid var(--cc);position:relative;z-index:1;display:flex;align-items:center;justify-content:center;font-size:20px}
+.cc .cname{font-size:11px;font-weight:700;margin-bottom:2px;position:relative;z-index:1;letter-spacing:.5px}
+.cc .grade{font-size:9px;color:#9b5de5;position:relative;z-index:1;letter-spacing:1px}
+.cc .tech{font-size:9px;color:#555;margin-top:3px;position:relative;z-index:1}
+
+#cdet{width:100%;max-width:640px;background:rgba(255,255,255,.04);border:1px solid #2a2a2a;border-radius:10px;padding:16px 20px;margin-bottom:14px;text-align:left;display:none}
+#cdet .dname{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;margin-bottom:4px}
+#cdet .dtitle{font-size:10px;color:#9b5de5;letter-spacing:2px;margin-bottom:10px}
+#cdet .ddesc{font-size:12px;color:#aaa;line-height:1.7;margin-bottom:10px}
+.abils{display:flex;gap:8px;flex-wrap:wrap}
+.atag{padding:4px 12px;border-radius:16px;font-size:10px;letter-spacing:1px;font-weight:600}
+.atag.q{background:rgba(155,93,229,.2);border:1px solid #9b5de5;color:#c084fc}
+.atag.e{background:rgba(230,60,60,.2);border:1px solid #e63c3c;color:#f87171}
+.atag.passive{background:rgba(100,200,100,.15);border:1px solid #4ade80;color:#86efac}
+#sfbtn{display:none}
+
+/* HUD */
+#hud{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:5;display:none}
+#topbar{position:absolute;top:0;left:0;width:100%;padding:12px 20px;display:flex;justify-content:space-between;align-items:flex-start}
+#charLabel h3{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:#fff}
+#charLabel p{font-size:10px;color:#666;letter-spacing:1px;margin-top:1px}
+#waveLabel{text-align:right}
+#waveLabel .wt{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;color:#e63c3c;text-shadow:0 0 10px #e63c3c55}
+#waveLabel .ec{font-size:11px;color:#555;margin-top:2px}
+#bosshpwrap{position:absolute;top:20px;left:50%;transform:translateX(-50%);width:380px;text-align:center;display:none}
+#bossname{font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:3px;color:#e63c3c;margin-bottom:5px}
+#bossbar{width:100%;height:14px;background:#1a1a1a;border-radius:7px;overflow:hidden;border:1px solid #333}
+#bossfill{height:100%;background:linear-gradient(90deg,#e63c3c,#7f0000);border-radius:7px;transition:width .2s}
+
+#bottomhud{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px}
+.cds{display:flex;gap:8px}
+.cd{width:52px;height:52px;background:rgba(0,0,0,.8);border:2px solid #2a2a2a;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;position:relative;overflow:hidden;transition:.2s}
+.cd.rdy{border-color:#e63c3c;box-shadow:0 0 10px rgba(230,60,60,.3)}
+.cd .ck{font-family:'Bebas Neue',sans-serif;font-size:16px;line-height:1}
+.cd .cn{font-size:8px;color:#888;text-align:center;padding:0 2px;line-height:1.2}
+.cdo{position:absolute;bottom:0;left:0;width:100%;background:rgba(0,0,0,.6);transition:height .08s}
+.bars{display:flex;gap:14px}
+.bw{display:flex;flex-direction:column;gap:3px;align-items:center}
+.bl{font-size:9px;color:#444;letter-spacing:2px;text-transform:uppercase}
+.bar{width:190px;height:10px;background:#111;border-radius:5px;overflow:hidden;border:1px solid #222}
+.bf{height:100%;border-radius:5px;transition:width .15s}
+.hp-f{background:linear-gradient(90deg,#e63c3c,#b91c1c)}
+.ce-f{background:linear-gradient(90deg,#9b5de5,#6d28d9)}
+
+.ctrl{position:absolute;bottom:110px;right:16px;color:#333;font-size:9px;text-align:right;line-height:2;letter-spacing:.5px}
+
+/* Enemy HP bars container */
+#ebars{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:6}
+.ebar{position:absolute;transform:translateX(-50%);pointer-events:none}
+.ebar-inner{width:60px;height:5px;background:#1a1a1a;border-radius:3px;overflow:hidden;border:1px solid #333}
+.ebar-fill{height:100%;background:#e63c3c;border-radius:3px;transition:width .1s}
+.ebar-name{font-size:8px;color:#666;text-align:center;margin-bottom:2px;letter-spacing:.5px;font-family:'Bebas Neue',sans-serif}
+
+/* WAVE ANNOUNCE */
+#wa{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:15;text-align:center;pointer-events:none;opacity:0;transition:opacity .4s}
+#wanum{font-family:'Bebas Neue',sans-serif;font-size:90px;color:#e63c3c;text-shadow:0 0 50px #e63c3c;line-height:1}
+#wasub{font-family:'Bebas Neue',sans-serif;font-size:24px;color:#fff;letter-spacing:8px}
+
+/* TECH ANNOUNCE */
+#ta{position:fixed;top:35%;left:50%;transform:translateX(-50%);z-index:16;text-align:center;pointer-events:none;opacity:0}
+#taname{font-family:'Bebas Neue',sans-serif;font-size:40px;letter-spacing:5px;text-shadow:0 0 25px currentColor}
+
+/* EFFECTS */
+#hf{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9;opacity:0;border:3px solid #e63c3c;box-shadow:inset 0 0 80px rgba(230,60,60,.4)}
+#df{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:8;opacity:0;background:radial-gradient(ellipse,rgba(155,93,229,.3),transparent 70%)}
+.dn{position:fixed;font-family:'Bebas Neue',sans-serif;pointer-events:none;z-index:13;animation:fu .9s ease-out forwards}
+@keyframes fu{0%{opacity:1;transform:translateY(0) scale(1.2)}100%{opacity:0;transform:translateY(-70px) scale(0.9)}}
+
+/* UPGRADE */
+#sUp{background:radial-gradient(ellipse at 50% 50%,#0d1a00 0%,#050005 70%)}
+#sUp h2{font-family:'Bebas Neue',sans-serif;font-size:44px;letter-spacing:6px;color:#f1c40f;text-shadow:0 0 25px #f1c40f55;margin-bottom:6px}
+#sUp .hint{color:#555;font-size:12px;letter-spacing:2px;margin-bottom:30px}
+#ucards{display:flex;gap:16px}
+.uc{background:rgba(255,255,255,.04);border:1px solid #2a2a2a;border-radius:12px;padding:22px 18px;width:210px;cursor:pointer;transition:.25s;text-align:center}
+.uc:hover{border-color:#f1c40f;background:rgba(241,196,15,.08);box-shadow:0 0 25px rgba(241,196,15,.25);transform:translateY(-6px)}
+.uc .ui2{font-size:42px;margin-bottom:12px}
+.uc .un{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:#f1c40f;margin-bottom:8px}
+.uc .ud{font-size:11px;color:#aaa;line-height:1.6}
+
+/* END */
+#sEnd{background:radial-gradient(ellipse at 50% 50%,#1a0005 0%,#000 70%)}
+#sEnd h2{font-family:'Bebas Neue',sans-serif;font-size:60px;letter-spacing:6px;margin-bottom:16px}
+#sEnd p{color:#666;font-size:14px;margin-bottom:32px;letter-spacing:1px}
+#sEnd button{padding:13px 38px;background:none;border:2px solid #555;color:#888;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:3px;cursor:pointer;transition:.2s}
+#sEnd button:hover{border-color:#e63c3c;color:#e63c3c}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="ebars"></div>
+<div id="hud">
+  <div id="topbar">
+    <div id="charLabel"><h3 id="cln"></h3><p id="clt"></p></div>
+    <div id="waveLabel"><div class="wt" id="wt">WAVE 1</div><div class="ec" id="ec"></div></div>
+  </div>
+  <div id="bosshpwrap"><div id="bossname"></div><div id="bossbar"><div id="bossfill" style="width:100%"></div></div></div>
+  <div id="bottomhud">
+    <div class="cds">
+      <div class="cd rdy" id="cdA"><span class="ck">LMB</span><span class="cn">Strike</span><div class="cdo" id="cdAo" style="height:0%"></div></div>
+      <div class="cd" id="cdQ"><span class="ck">Q</span><span class="cn" id="cdQn">Technique</span><div class="cdo" id="cdQo" style="height:0%"></div></div>
+      <div class="cd" id="cdE"><span class="ck">E</span><span class="cn" id="cdEn">Domain</span><div class="cdo" id="cdEo" style="height:0%"></div></div>
+      <div class="cd" id="cdSp"><span class="ck">SPC</span><span class="cn">Dodge</span><div class="cdo" id="cdSpo" style="height:0%"></div></div>
+    </div>
+    <div class="bars">
+      <div class="bw"><div class="bl">HP</div><div class="bar"><div class="bf hp-f" id="hpf" style="width:100%"></div></div></div>
+      <div class="bw"><div class="bl">Cursed Energy</div><div class="bar"><div class="bf ce-f" id="cef" style="width:100%"></div></div></div>
+    </div>
+  </div>
+  <div class="ctrl">WASD Move &nbsp;|&nbsp; LMB Attack &nbsp;|&nbsp; Q Technique &nbsp;|&nbsp; E Domain &nbsp;|&nbsp; SPACE Dodge</div>
+</div>
+<div id="wa"><div id="wanum"></div><div id="wasub"></div></div>
+<div id="ta"><div id="taname"></div></div>
+<div id="hf"></div>
+<div id="df"></div>
+
+<!-- TITLE -->
+<div class="screen" id="sTitle">
+  <div class="logo">JJK</div>
+  <div class="cursed">CURSED BATTLEFIELD</div>
+  <button class="btn-main" onclick="showCS()">BEGIN</button>
+</div>
+
+<!-- CHAR SELECT -->
+<div class="screen" id="sChar" style="display:none">
+  <h2>SELECT YOUR SORCERER</h2>
+  <p class="hint">Each carries a unique cursed technique. Choose your path.</p>
+  <div id="cgrid"></div>
+  <div id="cdet"><div class="dname" id="cdetN"></div><div class="dtitle" id="cdetT"></div><div class="ddesc" id="cdetD"></div><div class="abils" id="cdetA"></div></div>
+  <button class="btn-main" id="sfbtn" onclick="startGame()">ENTER THE BATTLEFIELD</button>
+</div>
+
+<!-- UPGRADE -->
+<div class="screen" id="sUp" style="display:none">
+  <h2>CURSED ENERGY SURGE</h2>
+  <p class="hint">Wave cleared. Your power evolves.</p>
+  <div id="ucards"></div>
+</div>
+
+<!-- END -->
+<div class="screen" id="sEnd" style="display:none">
+  <h2 id="endT"></h2>
+  <p id="endM"></p>
+  <button onclick="location.reload()">PLAY AGAIN</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ===================== CHARACTER DATA =====================
+const CHARS = {
+  yuji:{name:"Yuji Itadori",title:"Special Grade Vessel",grade:"Special Grade",emoji:"👊",color:"#ff6644",hex:0xff6644,
+    hp:160,speed:5.0,dmg:25,ce:100,ceRegen:1.5,defense:0,
+    desc:"Ryomen Sukuna's vessel. Superhuman physique backed by extraordinary cursed energy. His Divergent Fist creates a delayed CE discharge that disrupts cursed spirits at the core.",
+    q:{name:"Black Flash",desc:"Spatial distortion on contact. CE amplified 2.5x in a single instant.",cd:8,cost:20,dmg:90,type:"melee_aoe",radius:2.5,color:0xffa500},
+    e:{name:"Divergent Fist",desc:"Releases Sukuna's latent power briefly. Massive AOE shock around the player.",cd:40,cost:55,dmg:140,type:"aoe",radius:5,color:0xff2200},
+    moves:["Black Flash","Divergent Fist","Mahoraga (Lore)"]},
+  megumi:{name:"Megumi Fushiguro",title:"Grade 1 Sorcerer — Ten Shadows",grade:"Grade 1",emoji:"🐺",color:"#4488ff",hex:0x4488ff,
+    hp:120,speed:4.2,dmg:20,ce:130,ceRegen:2,defense:0,
+    desc:"Ten Shadows Technique summons shikigami manifested from shadows. Tactical sorcerer with massive potential via Mahoraga's infinite adaptation. Gets stronger as he takes damage.",
+    q:{name:"Divine Dogs: Totality",desc:"Twin Divine Dogs charge through enemies in rapid succession.",cd:10,cost:25,dmg:55,type:"multi_proj",count:4,color:0x88aaff},
+    e:{name:"Chimera Shadow Garden",desc:"Domain saturated with shadow. All enemies are slowed and take continuous damage.",cd:45,cost:65,dmg:100,type:"domain",radius:12,dot:15,dotDur:5,color:0x1133aa},
+    moves:["Divine Dogs","Nue (Lore)","Mahoraga (Lore)","Chimera Shadow Garden"]},
+  nobara:{name:"Nobara Kugisaki",title:"Grade 1 Sorcerer — Straw Doll",grade:"Grade 1",emoji:"🔨",color:"#ffcc00",hex:0xffcc00,
+    hp:115,speed:4.5,dmg:22,ce:110,ceRegen:1.5,defense:0,
+    desc:"Straw Doll Technique. Uses a hammer, straw effigy, and nails to transmit cursed energy into targets. Resonance propagates damage through all afflicted curses simultaneously.",
+    q:{name:"Hairpin",desc:"Fires five CE-charged nails at the nearest target in rapid burst.",cd:7,cost:20,dmg:70,type:"burst",count:5,color:0xffdd44},
+    e:{name:"Resonance",desc:"Simultaneously detonates cursed energy in all damaged enemies. Massive chain damage.",cd:35,cost:50,dmg:110,type:"aoe",radius:99,color:0xff8800},
+    moves:["Straw Doll Technique","Hairpin","Resonance"]},
+  gojo:{name:"Satoru Gojo",title:"Special Grade — Six Eyes",grade:"Special Grade",emoji:"🔵",color:"#00ddff",hex:0x00ddff,
+    hp:200,speed:5.0,dmg:30,ce:200,ceRegen:3,defense:25,
+    desc:"Infinity passively negates a portion of all incoming damage. Six Eyes perceive cursed energy output at near-zero loss. The strongest sorcerer. Unlimited Void is an inescapable domain expansion.",
+    passive:"Infinity: 25 flat damage reduction on every hit",
+    q:{name:"Blue: Lapse",desc:"Draws all nearby enemies toward you with gravitational attraction, then detonates.",cd:8,cost:30,dmg:75,type:"pull_aoe",radius:7,color:0x00bbff},
+    e:{name:"Unlimited Void",desc:"Domain expansion. All enemies receive infinite stimulation. Stunned and taking heavy damage for 4 seconds.",cd:50,cost:80,dmg:160,type:"domain_stun",radius:99,stunDur:4,color:0x0055ff},
+    moves:["Infinity (Passive)","Blue: Lapse","Red: Reversal (Lore)","Hollow Purple (Lore)","Unlimited Void"]},
+  sukuna:{name:"Ryomen Sukuna",title:"King of Curses",grade:"Special Grade",emoji:"🩸",color:"#ff2200",hex:0xff2200,
+    hp:180,speed:5.2,dmg:35,ce:180,ceRegen:2.5,defense:0,
+    desc:"Pinnacle of cursed spirits across over 1000 years. Dismantle is an undiscriminating slash. Cleave adapts output to the target's CE. Malevolent Shrine is an open-air domain that automatically dismantles everything within range.",
+    q:{name:"Dismantle",desc:"Non-discriminating slash wave tears through all enemies in a wide arc.",cd:6,cost:20,dmg:95,type:"slash",radius:8,color:0xff3300},
+    e:{name:"Malevolent Shrine",desc:"Open-air domain. Dismantle and Cleave fire automatically. Everything in range is cut apart.",cd:40,cost:70,dmg:210,type:"aoe",radius:10,color:0xaa0000},
+    moves:["Dismantle","Cleave (Lore)","Malevolent Shrine","Reverse Cursed Technique (Lore)"]},
+  nanami:{name:"Kento Nanami",title:"Grade 1 Sorcerer — Ratio Technique",grade:"Grade 1",emoji:"⚖️",color:"#ddbb44",hex:0xddbb44,
+    hp:135,speed:4.0,dmg:28,ce:100,ceRegen:1.2,defense:0,
+    desc:"Ratio Technique divides a target into ten equal segments and strikes the 7:3 weak point — a structural flaw inherent in any object. Methodical and efficient. Overtime mode significantly boosts output.",
+    q:{name:"Ratio: 7:3",desc:"Strikes the structural weak point. Guaranteed critical — double damage on the target.",cd:9,cost:20,dmg:95,type:"crit_strike",color:0xffee88},
+    e:{name:"Overtime Mode",desc:"Past designated hours, Nanami's CE output spikes. +50% damage and CE regen for 8s.",cd:45,cost:40,dmg:0,type:"buff",buffDur:8,dmgMult:1.5,color:0xffdd00},
+    moves:["Ratio Technique","Overtime Mode","Collapse (Lore)"]},
+  geto:{name:"Suguru Geto",title:"Special Grade — Spirit Manipulation",grade:"Special Grade",emoji:"🌀",color:"#44bb66",hex:0x44bb66,
+    hp:145,speed:4.2,dmg:20,ce:160,ceRegen:2.5,defense:0,
+    desc:"Cursed Spirit Manipulation allows absorption and weaponisation of curse spirits. Able to store hundreds of curses as ammunition. Maximum Uzumaki compresses all stored spirits into a single vortex.",
+    q:{name:"Release: Orochi",desc:"Deploys a stored snake curse that pursues and strikes all enemies.",cd:10,cost:30,dmg:60,type:"homing",count:3,color:0x55dd77},
+    e:{name:"Maximum: Uzumaki",desc:"Extracts and compresses all stored spirits into a CE vortex. Devastates entire arena.",cd:45,cost:70,dmg:180,type:"aoe",radius:10,color:0x00aa44},
+    moves:["Cursed Spirit Manipulation","Release: Orochi","Maximum Uzumaki"]},
+  todo:{name:"Aoi Todo",title:"Grade 1 Sorcerer — Boogie Woogie",grade:"Grade 1",emoji:"👏",color:"#aa55ff",hex:0xaa55ff,
+    hp:145,speed:5.5,dmg:26,ce:110,ceRegen:1.8,defense:0,
+    desc:"Boogie Woogie swaps the positions of anything containing cursed energy with a single clap. Exceptional physical capability. Creates tactical disorientation that even Special Grade curses cannot process.",
+    q:{name:"Boogie Woogie",desc:"Clap to swap positions with the nearest enemy. Surrounding curses are disoriented and stunned briefly.",cd:7,cost:15,dmg:35,type:"swap",stunDur:1.5,color:0xcc77ff},
+    e:{name:"Phantom Combo",desc:"Phantom clap creates the illusion of multiple Todos. Rapid combo hits on all enemies in range.",cd:38,cost:55,dmg:120,type:"aoe",radius:6,color:0x9933ff},
+    moves:["Boogie Woogie","Phantom Combo","World Cut Kick (Lore)"]},
+  inumaki:{name:"Toge Inumaki",title:"Semi-Grade 1 — Cursed Speech",grade:"Semi-Grade 1",emoji:"🗣️",color:"#ff88aa",hex:0xff88aa,
+    hp:95,speed:4.5,dmg:15,ce:135,ceRegen:2,defense:0,
+    desc:"Serpent Seal cursed speech binds targets with spoken commands. Each word carries compulsive force proportional to the sorcerer's CE output. High ceiling — but stresses the user's own body if overused.",
+    q:{name:"Explode",desc:"Commands nearby curses to detonate. Instantly kills weakened enemies, heavily damages others.",cd:12,cost:35,dmg:80,type:"aoe",radius:7,color:0xff6688},
+    e:{name:"Don't Move",desc:"Binding command freezes all curses for 5 seconds. Use the window to deal massive damage.",cd:50,cost:65,dmg:20,type:"stun_all",radius:99,stunDur:5,color:0xff2255},
+    moves:["Explode","Blast Away","Don't Move","Sleep","Cursed Speech"]},
+  yuta:{name:"Yuta Okkotsu",title:"Special Grade — Queen of Curses",grade:"Special Grade",emoji:"👻",color:"#eeeeff",hex:0xccccff,
+    hp:170,speed:4.5,dmg:28,ce:165,ceRegen:2.5,defense:0,
+    desc:"Bonded to Rika — the Queen of Curses. Enormous CE reserves allow technique copying. Rika manifests to protect Yuta directly and can unleash CE output rivalling Gojo. Volume Max is the most explosive ability in the game.",
+    q:{name:"Rika: Manifest",desc:"Rika appears and attacks all enemies in range with overwhelming CE output.",cd:10,cost:35,dmg:85,type:"aoe",radius:6,color:0xaaaaff},
+    e:{name:"Volume: Max",desc:"Full Rika manifestation. Total CE release — the single largest damage burst available.",cd:50,cost:80,dmg:230,type:"aoe",radius:9,color:0xffffff},
+    moves:["Rika Manifestation","Technique Copy (Lore)","Volume: Max","Reverse Cursed Technique (Lore)"]}
+};
+
+const UPGRADES=[
+  {id:"hp1",icon:"❤️",name:"Cursed Flesh",desc:"Max HP +35. Repeated CE exposure hardens the body.",apply:p=>{p.maxHp+=35;p.hp=Math.min(p.hp+35,p.maxHp)}},
+  {id:"ce1",icon:"💜",name:"CE Reservoir",desc:"Max Cursed Energy +40. Deeper reserves for sustained output.",apply:p=>{p.maxCe+=40;p.ce=Math.min(p.ce+40,p.maxCe)}},
+  {id:"dmg1",icon:"⚔️",name:"Cursed Strike",desc:"Basic attack damage +25%.",apply:p=>{p.dmg=Math.floor(p.dmg*1.25)}},
+  {id:"spd1",icon:"💨",name:"Body Refinement",desc:"Movement speed +15%.",apply:p=>{p.speed*=1.15}},
+  {id:"qcd1",icon:"⚡",name:"Technique Mastery",desc:"Q cooldown reduced 30%.",apply:p=>{p.qCdMax*=0.7}},
+  {id:"ecd1",icon:"🌀",name:"Domain Efficiency",desc:"Domain/Ultimate cooldown reduced 20%.",apply:p=>{p.eCdMax*=0.8}},
+  {id:"regen1",icon:"♻️",name:"CE Circulation",desc:"Cursed energy regeneration +2/s.",apply:p=>{p.ceRegen+=2}},
+  {id:"dodge1",icon:"🌪️",name:"Curtain Step",desc:"Dodge distance +50% and cooldown reduced.",apply:p=>{p.dodgeBoost=true}},
+  {id:"aoe1",icon:"💥",name:"Expanded Territory",desc:"Q ability radius +40%.",apply:p=>{p.qRadiusMult=(p.qRadiusMult||1)*1.4}},
+  {id:"crit1",icon:"🎯",name:"Partial Six Eyes",desc:"+25% chance attacks deal double damage.",apply:p=>{p.critChance=(p.critChance||0)+0.25}},
+  {id:"hp2",icon:"🩸",name:"Reverse Cursed Technique",desc:"Regenerate 3 HP per second passively.",apply:p=>{p.hpRegen=(p.hpRegen||0)+3}},
+  {id:"ce2",icon:"🔋",name:"Cursed Tools",desc:"Technique costs 20% less CE.",apply:p=>{p.ceCostMult=(p.ceCostMult||1)*0.8}},
+];
+
+const WAVES=[
+  {count:3,types:['f','f','f'],boss:false,name:"WAVE 1"},
+  {count:5,types:['f','f','t','f','t'],boss:false,name:"WAVE 2"},
+  {count:6,types:['t','t','s','f','t','s'],boss:false,name:"WAVE 3"},
+  {count:7,types:['s','t','t','s','s','f','t'],boss:false,name:"WAVE 4"},
+  {count:4,types:['t','t','f','f'],boss:true,name:"WAVE 5 — SPECIAL GRADE"},
+];
+
+const ETYPES={
+  f:{name:"Finger Bearer",hp:70,speed:1.8,dmg:10,color:0x993322,sz:0.65,reward:15,range:1.4},
+  t:{name:"Transfigured Human",hp:115,speed:2.8,dmg:14,color:0x664488,sz:0.75,reward:25,range:1.5},
+  s:{name:"Special Grade",hp:220,speed:1.8,dmg:22,color:0x222222,sz:1.1,reward:40,range:1.8},
+  boss:{name:"Disaster Curse: Jogo",hp:900,speed:1.6,dmg:28,color:0xff4400,sz:2.2,reward:150,range:2.5},
+};
+
+// ===================== THREE.JS =====================
+const W=window.innerWidth,H=window.innerHeight;
+const renderer=new THREE.WebGLRenderer({canvas:document.getElementById('c'),antialias:true});
+renderer.setSize(W,H);renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.setClearColor(0x050005);
+
+const scene=new THREE.Scene();
+scene.fog=new THREE.FogExp2(0x0a000f,0.035);
+const camera=new THREE.PerspectiveCamera(55,W/H,0.1,200);
+camera.position.set(0,13,9);camera.lookAt(0,0,0);
+const clock=new THREE.Clock();
+const raycaster=new THREE.Raycaster();
+const mouse=new THREE.Vector2(-9,-9);
+const floorPlane=new THREE.Plane(new THREE.Vector3(0,1,0),0);
+const aimPt=new THREE.Vector3();
+
+window.addEventListener('resize',()=>{
+  renderer.setSize(window.innerWidth,window.innerHeight);
+  camera.aspect=window.innerWidth/window.innerHeight;camera.updateProjectionMatrix();
+});
+
+// ===================== SCENE BUILDING =====================
+function buildScene(){
+  // Floor
+  const floorMat=new THREE.MeshStandardMaterial({color:0x0d000d,roughness:0.9,metalness:0.1});
+  const floor=new THREE.Mesh(new THREE.PlaneGeometry(40,40,20,20),floorMat);
+  floor.rotation.x=-Math.PI/2;floor.receiveShadow=true;scene.add(floor);
+
+  // Grid lines on floor
+  const grid=new THREE.GridHelper(40,20,0x1a001a,0x0d000d);
+  grid.position.y=0.01;scene.add(grid);
+
+  // Walls
+  const wallMat=new THREE.MeshStandardMaterial({color:0x0d000d,roughness:1,metalness:0});
+  const wallGeo=new THREE.BoxGeometry(40,6,0.5);
+  const walls=[
+    [0,3,-20],[0,3,20],[20,3,0],[20,3,0]
+  ];
+  [[0,3,-20,0],[0,3,20,Math.PI],[20,3,0,Math.PI/2],[-20,3,0,-Math.PI/2]].forEach(([x,y,z,r])=>{
+    const w=new THREE.Mesh(wallGeo,wallMat);
+    w.position.set(x,y,z);w.rotation.y=r;w.castShadow=true;w.receiveShadow=true;scene.add(w);
+  });
+
+  // Pillar decorations
+  const pillarGeo=new THREE.CylinderGeometry(0.3,0.4,4,6);
+  const pillarMat=new THREE.MeshStandardMaterial({color:0x150015,roughness:0.8});
+  [[8,2,8],[8,2,-8],[-8,2,8],[-8,2,-8],[14,2,14],[14,2,-14],[-14,2,14],[-14,2,-14]].forEach(([x,y,z])=>{
+    const p=new THREE.Mesh(pillarGeo,pillarMat);p.position.set(x,y,z);p.castShadow=true;scene.add(p);
+  });
+
+  // Lighting
+  const ambient=new THREE.AmbientLight(0x110011,0.5);scene.add(ambient);
+  const dirLight=new THREE.DirectionalLight(0x8899ff,0.8);
+  dirLight.position.set(5,15,8);dirLight.castShadow=true;
+  dirLight.shadow.mapSize.set(1024,1024);scene.add(dirLight);
+
+  // Atmosphere lights
+  const redLight=new THREE.PointLight(0xff2200,2,20);redLight.position.set(-8,3,0);scene.add(redLight);
+  const purLight=new THREE.PointLight(0x7722ff,2,20);purLight.position.set(8,3,0);scene.add(purLight);
+}
+buildScene();
+
+// ===================== GAME STATE =====================
+let gs='title';
+let selectedChar=null;
+let player=null;
+let enemies=[];
+let projectiles=[];
+let particles=[];
+let waveIndex=0;
+let spawnedCount=0;
+let spawnTimer=0;
+let waveActive=false;
+let buffTimer=0;
+let buffActive=false;
+let dmgMultBuff=1;
+let shakeTimer=0;
+let shakeAmt=0;
+
+const keys={};
+document.addEventListener('keydown',e=>{
+  keys[e.code]=true;
+  if(e.code==='Space')e.preventDefault();
+  if(gs!=='playing')return;
+  if(e.code==='KeyQ')useQ();
+  if(e.code==='KeyE')useE();
+  if(e.code==='Space')dodge();
+});
+document.addEventListener('keyup',e=>{keys[e.code]=false});
+document.addEventListener('mousemove',e=>{
+  const r=renderer.domElement.getBoundingClientRect();
+  mouse.x=((e.clientX-r.left)/r.width)*2-1;
+  mouse.y=-((e.clientY-r.top)/r.height)*2+1;
+});
+document.addEventListener('click',e=>{
+  if(gs==='playing')useAttack();
+});
+
+// ===================== PLAYER =====================
+function makePlayerMesh(color){
+  const g=new THREE.Group();
+  const bodyM=new THREE.MeshStandardMaterial({color,emissive:color,emissiveIntensity:0.15,roughness:0.5});
+  const body=new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.35,1.4,8),bodyM);
+  body.position.y=0.7;body.castShadow=true;g.add(body);
+  const head=new THREE.Mesh(new THREE.SphereGeometry(0.32,8,8),bodyM);
+  head.position.y=1.6;head.castShadow=true;g.add(head);
+  const glow=new THREE.PointLight(color,1.5,4);glow.position.y=1;g.add(glow);
+  return g;
+}
+
+function initPlayer(charKey){
+  const cd=CHARS[charKey];
+  if(player&&player.mesh)scene.remove(player.mesh);
+  player={
+    charKey,charData:cd,
+    x:0,z:0,
+    mesh:makePlayerMesh(cd.hex),
+    hp:cd.hp,maxHp:cd.hp,
+    ce:cd.ce,maxCe:cd.ce,
+    ceRegen:cd.ceRegen,
+    speed:cd.speed,
+    dmg:cd.dmg,
+    defense:cd.defense||0,
+    dodging:false,dodgeTimer:0,dodgeDirX:0,dodgeDirZ:0,
+    dodgeCd:0,dodgeCdMax:2,
+    attackCd:0,attackCdMax:0.5,
+    qCd:0,qCdMax:cd.q.cd,
+    eCd:0,eCdMax:cd.e.cd,
+    critChance:0,
+    qRadiusMult:1,
+    ceCostMult:1,
+    ceRegen:cd.ceRegen,
+    dodgeBoost:false,
+    hpRegen:0,
+    dead:false,
+  };
+  player.mesh.position.set(0,0,0);
+  scene.add(player.mesh);
+}
+
+function updatePlayer(dt){
+  if(!player||player.dead)return;
+
+  // Aim
+  raycaster.setFromCamera(mouse,camera);
+  raycaster.ray.intersectPlane(floorPlane,aimPt);
+
+  // Movement
+  const camFwd=new THREE.Vector3(-1,0,-1).normalize();
+  const camRight=new THREE.Vector3(1,0,-1).normalize();
+  let mx=0,mz=0;
+  if(keys['KeyW']){mx+=camFwd.x;mz+=camFwd.z}
+  if(keys['KeyS']){mx-=camFwd.x;mz-=camFwd.z}
+  if(keys['KeyA']){mx-=camRight.x;mz-=camRight.z}
+  if(keys['KeyD']){mx+=camRight.x;mz+=camRight.z}
+  const len=Math.sqrt(mx*mx+mz*mz);
+  if(len>0){mx/=len;mz/=len}
+
+  if(player.dodging){
+    player.dodgeTimer-=dt;
+    const ds=player.dodgeBoost?14:10;
+    player.x+=player.dodgeDirX*ds*dt;
+    player.z+=player.dodgeDirZ*ds*dt;
+    if(player.dodgeTimer<=0)player.dodging=false;
+  }else{
+    player.x+=mx*player.speed*dt;
+    player.z+=mz*player.speed*dt;
+  }
+
+  // Arena bounds
+  const B=17;
+  player.x=Math.max(-B,Math.min(B,player.x));
+  player.z=Math.max(-B,Math.min(B,player.z));
+
+  player.mesh.position.set(player.x,0,player.z);
+
+  // Face aim point
+  const dx=aimPt.x-player.x,dz=aimPt.z-player.z;
+  if(Math.abs(dx)>0.1||Math.abs(dz)>0.1)
+    player.mesh.rotation.y=Math.atan2(dx,dz);
+
+  // Cooldowns
+  if(player.attackCd>0)player.attackCd=Math.max(0,player.attackCd-dt);
+  if(player.qCd>0)player.qCd=Math.max(0,player.qCd-dt);
+  if(player.eCd>0)player.eCd=Math.max(0,player.eCd-dt);
+  if(player.dodgeCd>0)player.dodgeCd=Math.max(0,player.dodgeCd-dt);
+
+  // CE regen
+  player.ce=Math.min(player.maxCe,player.ce+player.ceRegen*dt);
+
+  // HP regen
+  if(player.hpRegen)player.hp=Math.min(player.maxHp,player.hp+player.hpRegen*dt);
+
+  // Buff timer
+  if(buffActive){
+    buffTimer-=dt;
+    if(buffTimer<=0){buffActive=false;dmgMultBuff=1;}
+  }
+
+  // Camera follow
+  const camOffset=new THREE.Vector3(0,13,9);
+  camera.position.lerp(new THREE.Vector3(player.x+camOffset.x,camOffset.y,player.z+camOffset.z),0.08);
+  camera.lookAt(player.x,0.5,player.z);
+
+  // Screen shake
+  if(shakeTimer>0){
+    shakeTimer-=dt;
+    camera.position.x+=( Math.random()-0.5)*shakeAmt;
+    camera.position.y+=( Math.random()-0.5)*shakeAmt*0.3;
+  }
+
+  updateHUD();
+}
+
+// ===================== ATTACKS =====================
+function useAttack(){
+  if(!player||player.dead||gs!=='playing')return;
+  if(player.attackCd>0)return;
+  player.attackCd=player.attackCdMax;
+
+  const isCrit=(player.critChance||0)>Math.random();
+  let dmg=player.dmg*(buffActive?dmgMultBuff:1)*(isCrit?2:1);
+
+  // Find closest enemy
+  let closest=null,closestDist=999;
+  enemies.forEach(e=>{
+    const d=dist(player.x,player.z,e.x,e.z);
+    if(d<closestDist){closestDist=d;closest=e;}
+  });
+
+  if(closest&&closestDist<12){
+    spawnProjectile(player.x,player.z+0.8,closest.x,closest.z,0xffffff,0.15,20,()=>{
+      dealDmgToEnemy(closest,dmg,isCrit);
+    });
+    spawnRing(player.x,player.z,1.5,0xffffff44,0.3);
+  }
+}
+
+function useQ(){
+  if(!player||player.dead)return;
+  if(player.qCd>0)return;
+  const q=player.charData.q;
+  const cost=q.cost*(player.ceCostMult||1);
+  if(player.ce<cost)return;
+  player.qCd=player.qCdMax;
+  player.ce-=cost;
+  showTechAnnounce(q.name,player.charData.color);
+
+  const r=(q.radius||4)*(player.qRadiusMult||1);
+  const cd=player.charData;
+
+  if(q.type==='melee_aoe'||q.type==='aoe'||q.type==='slash'||q.type==='pull_aoe'){
+    if(q.type==='pull_aoe'){
+      enemies.forEach(e=>{
+        if(dist(player.x,player.z,e.x,e.z)<r){
+          // pull toward player
+          const ang=Math.atan2(player.x-e.x,player.z-e.z);
+          e.x+=Math.sin(ang)*3;e.z+=Math.cos(ang)*3;
+          dealDmgToEnemy(e,q.dmg*(buffActive?dmgMultBuff:1));
+        }
+      });
+    }else{
+      enemies.forEach(e=>{
+        if(dist(player.x,player.z,e.x,e.z)<r)
+          dealDmgToEnemy(e,q.dmg*(buffActive?dmgMultBuff:1));
+      });
+    }
+    spawnExplosion(player.x,player.z,r,q.color,0.6);
+    spawnRing(player.x,player.z,r,q.color,0.5);
+    triggerDomainFlash(q.color,0.4);
+  }else if(q.type==='multi_proj'||q.type==='burst'){
+    const nearest=getNearestEnemy();
+    if(nearest){
+      const cnt=q.count||3;
+      for(let i=0;i<cnt;i++){
+        setTimeout(()=>{
+          if(nearest.hp>0)
+            spawnProjectile(player.x,player.z,nearest.x,nearest.z,q.color,0.18,25,()=>{
+              dealDmgToEnemy(nearest,q.dmg/cnt*(buffActive?dmgMultBuff:1));
+            });
+        },i*80);
+      }
+    }
+  }else if(q.type==='homing'){
+    const cnt=q.count||2;
+    for(let i=0;i<cnt;i++){
+      const tgt=enemies[i%enemies.length];
+      if(tgt) spawnProjectile(player.x,player.z,tgt.x,tgt.z,q.color,0.2,18,()=>{
+        dealDmgToEnemy(tgt,q.dmg/cnt*(buffActive?dmgMultBuff:1));
+      });
+    }
+  }else if(q.type==='crit_strike'){
+    const nearest=getNearestEnemy();
+    if(nearest){
+      dealDmgToEnemy(nearest,q.dmg*(buffActive?dmgMultBuff:1),true);
+      spawnProjectile(player.x,player.z,nearest.x,nearest.z,q.color,0.3,30,()=>{});
+      spawnExplosion(nearest.x,nearest.z,2,q.color,0.5);
+    }
+  }else if(q.type==='swap'){
+    const nearest=getNearestEnemy();
+    if(nearest){
+      const ox=player.x,oz=player.z;
+      player.x=nearest.x;player.z=nearest.z;
+      nearest.x=ox;nearest.z=oz;
+      if(q.stunDur) nearest.stunTimer=(nearest.stunTimer||0)+q.stunDur;
+      enemies.forEach(e=>{
+        if(dist(player.x,player.z,e.x,e.z)<3.5){
+          e.stunTimer=(e.stunTimer||0)+1.5;
+          dealDmgToEnemy(e,q.dmg*(buffActive?dmgMultBuff:1));
+        }
+      });
+      spawnExplosion(player.x,player.z,3,q.color,0.5);
+    }
+  }
+}
+
+function useE(){
+  if(!player||player.dead)return;
+  if(player.eCd>0)return;
+  const e=player.charData.e;
+  const cost=e.cost*(player.ceCostMult||1);
+  if(player.ce<cost)return;
+  player.eCd=player.eCdMax;
+  player.ce-=cost;
+  showTechAnnounce(e.name,player.charData.color);
+  triggerDomainFlash(e.color||player.charData.hex,0.7);
+  screenShake(0.25,0.8);
+
+  if(e.type==='domain'||e.type==='aoe'){
+    const r=e.radius>=50?99:e.radius;
+    enemies.forEach(en=>{
+      if(r===99||dist(player.x,player.z,en.x,en.z)<r){
+        dealDmgToEnemy(en,e.dmg*(buffActive?dmgMultBuff:1));
+        if(e.dot){en.dotDmg=e.dot;en.dotTimer=e.dotDur||3;}
+        if(e.stunDur) en.stunTimer=(en.stunTimer||0)+e.stunDur;
+      }
+    });
+    spawnExplosion(player.x,player.z,Math.min(r,12),e.color||0xffffff,1);
+  }else if(e.type==='domain_stun'||e.type==='stun_all'){
+    enemies.forEach(en=>{
+      dealDmgToEnemy(en,e.dmg*(buffActive?dmgMultBuff:1));
+      en.stunTimer=(en.stunTimer||0)+(e.stunDur||3);
+    });
+    spawnExplosion(player.x,player.z,10,e.color||0xffffff,1.2);
+  }else if(e.type==='buff'){
+    buffActive=true;buffTimer=e.buffDur||8;dmgMultBuff=e.dmgMult||1.5;
+    player.ceRegen+=3;
+    setTimeout(()=>{player.ceRegen-=3;},e.buffDur*1000);
+    spawnExplosion(player.x,player.z,3,e.color||0xffff00,0.8);
+  }
+}
+
+function dodge(){
+  if(!player||player.dead)return;
+  if(player.dodgeCd>0||player.dodging)return;
+  let dx=0,dz=0;
+  const fwd=new THREE.Vector3(-1,0,-1).normalize();
+  const rgt=new THREE.Vector3(1,0,-1).normalize();
+  if(keys['KeyW']){dx+=fwd.x;dz+=fwd.z}
+  if(keys['KeyS']){dx-=fwd.x;dz-=fwd.z}
+  if(keys['KeyA']){dx-=rgt.x;dz-=rgt.z}
+  if(keys['KeyD']){dx+=rgt.x;dz+=rgt.z}
+  const l=Math.sqrt(dx*dx+dz*dz);
+  if(l===0){dx=0;dz=-1;}else{dx/=l;dz/=l;}
+  player.dodging=true;
+  player.dodgeTimer=0.2;
+  player.dodgeDirX=dx;player.dodgeDirZ=dz;
+  player.dodgeCd=player.dodgeBoost?1.5:2;
+}
+
+// ===================== ENEMIES =====================
+function makeEnemyMesh(type,color){
+  const g=new THREE.Group();
+  const mat=new THREE.MeshStandardMaterial({color,emissive:color,emissiveIntensity:0.2,roughness:0.7});
+  const sz=ETYPES[type].sz;
+  let body;
+  if(type==='boss'){
+    body=new THREE.Mesh(new THREE.IcosahedronGeometry(sz,1),mat);
+    body.position.y=sz;
+  }else if(type==='s'){
+    body=new THREE.Mesh(new THREE.DodecahedronGeometry(sz,0),mat);
+    body.position.y=sz;
+  }else if(type==='t'){
+    body=new THREE.Mesh(new THREE.OctahedronGeometry(sz,0),mat);
+    body.position.y=sz;
+  }else{
+    body=new THREE.Mesh(new THREE.IcosahedronGeometry(sz,0),mat);
+    body.position.y=sz;
+  }
+  body.castShadow=true;g.add(body);
+  const glow=new THREE.PointLight(color,1,3);glow.position.y=sz;g.add(glow);
+  return g;
+}
+
+function spawnEnemy(typeKey,x,z){
+  const et=ETYPES[typeKey];
+  const e={
+    typeKey,name:et.name,
+    x,z,
+    hp:et.hp,maxHp:et.hp,
+    speed:et.speed,
+    dmg:et.dmg,
+    range:et.range,
+    reward:et.reward,
+    attackTimer:0,
+    attackCd:2.0,
+    stunTimer:0,
+    dotDmg:0,dotTimer:0,
+    dead:false,
+    rotAngle:0,
+    mesh:makeEnemyMesh(typeKey,et.color),
+    hpDiv:null,
+  };
+  e.mesh.position.set(x,0,z);
+  scene.add(e.mesh);
+
+  // HP bar element
+  const div=document.createElement('div');
+  div.className='ebar';
+  div.innerHTML=`<div class="ebar-name">${et.name}</div><div class="ebar-inner"><div class="ebar-fill" style="width:100%"></div></div>`;
+  document.getElementById('ebars').appendChild(div);
+  e.hpDiv=div;
+
+  enemies.push(e);
+}
+
+function updateEnemies(dt){
+  enemies.forEach(e=>{
+    if(e.dead)return;
+
+    // Spin for visual
+    e.rotAngle+=dt*(e.typeKey==='boss'?1.5:2.5);
+    if(e.mesh.children[0])e.mesh.children[0].rotation.y=e.rotAngle;
+
+    // DOT
+    if(e.dotTimer>0){
+      e.dotTimer-=dt;
+      e.hp-=e.dotDmg*dt;
+      if(e.hp<=0){killEnemy(e);return;}
+    }
+
+    // Stun
+    if(e.stunTimer>0){
+      e.stunTimer=Math.max(0,e.stunTimer-dt);
+      // tint mesh red when stunned
+      return;
+    }
+
+    if(!player||player.dead)return;
+
+    const dx=player.x-e.x,dz=player.z-e.z;
+    const d=Math.sqrt(dx*dx+dz*dz);
+    const spd=e.typeKey==='boss'?(waveIndex>=4?2.2:1.6):e.speed;
+
+    if(d>e.range){
+      e.x+=dx/d*spd*dt;
+      e.z+=dz/d*spd*dt;
+    }
+
+    e.mesh.position.set(e.x,0,e.z);
+    if(d>0.1)e.mesh.rotation.y=Math.atan2(dx,dz);
+
+    // Attack player
+    if(d<e.range){
+      e.attackTimer+=dt;
+      if(e.attackTimer>=e.attackCd){
+        e.attackTimer=0;
+        if(!player.dodging){
+          let dmg=e.dmg-player.defense;
+          dmg=Math.max(1,dmg);
+          player.hp-=dmg;
+          flashHit();
+          if(player.hp<=0){playerDie();return;}
+        }
+      }
+    }
+
+    // Update HP bar
+    updateEnemyBar(e);
+  });
+}
+
+function updateEnemyBar(e){
+  if(!e.hpDiv)return;
+  const pct=Math.max(0,e.hp/e.maxHp)*100;
+  e.hpDiv.querySelector('.ebar-fill').style.width=pct+'%';
+  // Project to screen
+  const v=new THREE.Vector3(e.x,ETYPES[e.typeKey].sz*2+0.5,e.z);
+  v.project(camera);
+  const sx=(v.x+1)/2*window.innerWidth;
+  const sy=(-v.y+1)/2*window.innerHeight;
+  e.hpDiv.style.left=sx+'px';
+  e.hpDiv.style.top=sy+'px';
+  e.hpDiv.style.display=(v.z<1&&v.z>-1)?'block':'none';
+}
+
+function dealDmgToEnemy(e,dmg,crit=false){
+  if(!e||e.dead)return;
+  const fd=Math.floor(dmg);
+  e.hp-=fd;
+  showDmgNum(e.x,e.z,fd,crit);
+  if(e.hp<=0)killEnemy(e);
+}
+
+function killEnemy(e){
+  if(e.dead)return;
+  e.dead=true;
+  scene.remove(e.mesh);
+  if(e.hpDiv){e.hpDiv.remove();e.hpDiv=null;}
+  spawnExplosion(e.x,e.z,ETYPES[e.typeKey].sz*2,ETYPES[e.typeKey].color,0.5);
+  enemies=enemies.filter(x=>x!==e);
+  checkWave();
+}
+
+function getNearestEnemy(){
+  let closest=null,d=999;
+  enemies.forEach(e=>{
+    const dd=dist(player.x,player.z,e.x,e.z);
+    if(dd<d){d=dd;closest=e;}
+  });
+  return closest;
+}
+
+// ===================== PROJECTILES =====================
+function spawnProjectile(x,z,tx,tz,color,size,spd,onHit){
+  const dx=tx-x,dz=tz-z,l=Math.sqrt(dx*dx+dz*dz)||1;
+  const geo=new THREE.SphereGeometry(size,6,6);
+  const mat=new THREE.MeshStandardMaterial({color,emissive:color,emissiveIntensity:1});
+  const mesh=new THREE.Mesh(geo,mat);
+  mesh.position.set(x,1,z);
+  const light=new THREE.PointLight(color,2,3);
+  mesh.add(light);
+  scene.add(mesh);
+  projectiles.push({mesh,vx:dx/l*spd,vz:dz/l*spd,tx,tz,onHit,alive:true});
+}
+
+function updateProjectiles(dt){
+  projectiles=projectiles.filter(p=>{
+    if(!p.alive)return false;
+    p.mesh.position.x+=p.vx*dt;
+    p.mesh.position.z+=p.vz*dt;
+    const d=dist(p.mesh.position.x,p.mesh.position.z,p.tx,p.tz);
+    if(d<0.6){
+      p.onHit();
+      scene.remove(p.mesh);
+      p.alive=false;
+      return false;
+    }
+    if(dist(p.mesh.position.x,p.mesh.position.z,player.x,player.z)>35){
+      scene.remove(p.mesh);return false;
+    }
+    return true;
+  });
+}
+
+// ===================== PARTICLES =====================
+function spawnExplosion(x,z,radius,color,duration){
+  const cnt=Math.floor(radius*6)+8;
+  for(let i=0;i<cnt;i++){
+    const ang=Math.random()*Math.PI*2;
+    const spd=1+Math.random()*4;
+    const r=Math.random()*radius;
+    const geo=new THREE.SphereGeometry(0.07+Math.random()*0.12,4,4);
+    const mat=new THREE.MeshStandardMaterial({color,emissive:color,emissiveIntensity:1});
+    const mesh=new THREE.Mesh(geo,mat);
+    mesh.position.set(x+Math.cos(ang)*r*0.3,0.5+Math.random()*1.5,z+Math.sin(ang)*r*0.3);
+    scene.add(mesh);
+    particles.push({
+      mesh,
+      vx:Math.cos(ang)*spd,vy:2+Math.random()*3,vz:Math.sin(ang)*spd,
+      life:duration*(0.5+Math.random()*0.5),maxLife:duration,alive:true
+    });
+  }
+}
+
+function spawnRing(x,z,radius,color,duration){
+  const geo=new THREE.TorusGeometry(radius,0.1,4,24);
+  const mat=new THREE.MeshStandardMaterial({color,emissive:color,emissiveIntensity:1,transparent:true,opacity:0.8});
+  const mesh=new THREE.Mesh(geo,mat);
+  mesh.position.set(x,0.15,z);mesh.rotation.x=-Math.PI/2;
+  scene.add(mesh);
+  particles.push({mesh,vx:0,vy:0,vz:0,life:duration,maxLife:duration,alive:true,ring:true,startR:radius});
+}
+
+function updateParticles(dt){
+  particles=particles.filter(p=>{
+    if(!p.alive)return false;
+    p.life-=dt;
+    if(p.life<=0){scene.remove(p.mesh);return false;}
+    const t=1-p.life/p.maxLife;
+    if(p.ring){
+      const s=1+t*2;
+      p.mesh.scale.set(s,s,s);
+      p.mesh.material.opacity=Math.max(0,0.8*(1-t));
+    }else{
+      p.mesh.position.x+=p.vx*dt;
+      p.mesh.position.y+=p.vy*dt;
+      p.mesh.position.z+=p.vz*dt;
+      p.vy-=6*dt;
+      p.mesh.material.opacity=Math.max(0,1-t*1.5);
+      if(!p.mesh.material.transparent){p.mesh.material.transparent=true;}
+    }
+    return true;
+  });
+}
+
+// ===================== UI EFFECTS =====================
+function flashHit(){
+  const el=document.getElementById('hf');
+  el.style.opacity='1';
+  setTimeout(()=>{el.style.transition='opacity 0.3s';el.style.opacity='0';},80);
+}
+
+function triggerDomainFlash(color,intensity=0.5){
+  const el=document.getElementById('df');
+  const c=new THREE.Color(color);
+  el.style.background=`radial-gradient(ellipse,rgba(${Math.floor(c.r*255)},${Math.floor(c.g*255)},${Math.floor(c.b*255)},${intensity}),transparent 70%)`;
+  el.style.transition='opacity 0.1s';el.style.opacity='1';
+  setTimeout(()=>{el.style.transition='opacity 1s';el.style.opacity='0';},200);
+}
+
+function showTechAnnounce(name,color){
+  const el=document.getElementById('ta');
+  const tn=document.getElementById('taname');
+  tn.textContent=name;tn.style.color=color;
+  el.style.transition='none';el.style.opacity='1';el.style.top='35%';
+  setTimeout(()=>{el.style.transition='opacity 0.5s, top 0.5s';el.style.opacity='0';el.style.top='30%';},1000);
+}
+
+function showDmgNum(x,z,val,crit=false){
+  const v=new THREE.Vector3(x,1.5,z);v.project(camera);
+  const sx=(v.x+1)/2*window.innerWidth;
+  const sy=(-v.y+1)/2*window.innerHeight;
+  const d=document.createElement('div');
+  d.className='dn';
+  d.textContent=crit?`${val}!`:val;
+  d.style.left=sx+'px';d.style.top=sy+'px';
+  d.style.color=crit?'#ffff00':'#ff4444';
+  d.style.fontSize=crit?'28px':'20px';
+  document.body.appendChild(d);
+  setTimeout(()=>d.remove(),900);
+}
+
+function screenShake(amt,dur){shakeAmt=amt;shakeTimer=dur;}
+
+function waveAnnounce(text,sub){
+  const wa=document.getElementById('wa');
+  document.getElementById('wanum').textContent=text;
+  document.getElementById('wasub').textContent=sub;
+  wa.style.transition='none';wa.style.opacity='1';
+  setTimeout(()=>{wa.style.transition='opacity 0.8s';wa.style.opacity='0';},1800);
+}
+
+function updateHUD(){
+  if(!player)return;
+  document.getElementById('hpf').style.width=Math.max(0,player.hp/player.maxHp*100)+'%';
+  document.getElementById('cef').style.width=Math.max(0,player.ce/player.maxCe*100)+'%';
+
+  const setCD=(ovlId,cdId,cur,max)=>{
+    const pct=max>0?Math.max(0,cur/max*100):0;
+    document.getElementById(ovlId).style.height=pct+'%';
+    document.getElementById(cdId).classList.toggle('rdy',cur<=0);
+  };
+  setCD('cdAo','cdA',player.attackCd,player.attackCdMax);
+  setCD('cdQo','cdQ',player.qCd,player.qCdMax);
+  setCD('cdEo','cdE',player.eCd,player.eCdMax);
+  setCD('cdSpo','cdSp',player.dodgeCd,player.dodgeCdMax);
+
+  // Enemy count
+  const alive=enemies.length+(WAVES[waveIndex]?Math.max(0,WAVES[waveIndex].count-spawnedCount):0);
+  document.getElementById('ec').textContent=`Curses remaining: ${alive}`;
+
+  // Boss bar
+  const boss=enemies.find(e=>e.typeKey==='boss');
+  if(boss){
+    document.getElementById('bosshpwrap').style.display='block';
+    document.getElementById('bossname').textContent=boss.name.toUpperCase();
+    document.getElementById('bossfill').style.width=Math.max(0,boss.hp/boss.maxHp*100)+'%';
+  }else{
+    document.getElementById('bosshpwrap').style.display='none';
+  }
+}
+
+// ===================== WAVE SYSTEM =====================
+function startWave(idx){
+  waveIndex=idx;
+  waveActive=true;
+  spawnedCount=0;
+  spawnTimer=0;
+  const w=WAVES[idx];
+  document.getElementById('wt').textContent=w.name;
+  waveAnnounce(w.name,'BEGINS');
+  if(idx>=4)setTimeout(()=>screenShake(0.3,0.5),200);
+}
+
+function spawnNextEnemy(){
+  const w=WAVES[waveIndex];
+  if(spawnedCount>=w.types.length)return;
+  const type=w.types[spawnedCount];
+  const ang=Math.random()*Math.PI*2;
+  const r=14+Math.random()*3;
+  spawnEnemy(type,Math.cos(ang)*r,Math.sin(ang)*r);
+  spawnedCount++;
+  if(w.boss&&spawnedCount===w.types.length){
+    setTimeout(()=>{
+      const bang=Math.random()*Math.PI*2;
+      spawnEnemy('boss',Math.cos(bang)*12,Math.sin(bang)*12);
+      screenShake(0.4,1);
+    },2000);
+  }
+}
+
+function checkWave(){
+  if(!waveActive)return;
+  const w=WAVES[waveIndex];
+  const allSpawned=spawnedCount>=(w.types.length+(w.boss?1:0));
+  if(allSpawned&&enemies.length===0){
+    waveActive=false;
+    if(waveIndex>=WAVES.length-1){
+      setTimeout(()=>victory(),1500);
+    }else{
+      setTimeout(()=>showUpgrades(),2000);
+    }
+  }
+}
+
+// ===================== UPGRADE SCREEN =====================
+function showUpgrades(){
+  gs='upgrade';
+  const pool=[...ALL_UPGRADES].sort(()=>Math.random()-0.5).slice(0,3);
+  const cnt=document.getElementById('ucards');
+  cnt.innerHTML='';
+  pool.forEach(u=>{
+    const d=document.createElement('div');
+    d.className='uc';
+    d.innerHTML=`<div class="ui2">${u.icon}</div><div class="un">${u.name}</div><div class="ud">${u.desc}</div>`;
+    d.onclick=()=>{
+      u.apply(player);
+      document.getElementById('sUp').style.display='none';
+      gs='playing';
+      startWave(waveIndex+1);
+    };
+    cnt.appendChild(d);
+  });
+  document.getElementById('sUp').style.display='flex';
+}
+
+// ===================== DEATH / VICTORY =====================
+function playerDie(){
+  if(player)player.dead=true;
+  gs='end';
+  setTimeout(()=>{
+    document.getElementById('endT').textContent='GAME OVER';
+    document.getElementById('endT').style.color='#e63c3c';
+    document.getElementById('endM').textContent=`Defeated on ${WAVES[waveIndex].name}. The curses are relentless.`;
+    document.getElementById('sEnd').style.display='flex';
+  },1000);
+}
+
+function victory(){
+  gs='end';
+  document.getElementById('endT').textContent='MISSION COMPLETE';
+  document.getElementById('endT').style.color='#f1c40f';
+  document.getElementById('endM').textContent='All cursed spirits exorcised. Your technique stands unchallenged.';
+  document.getElementById('sEnd').style.display='flex';
+}
+
+// ===================== GAME LOOP =====================
+function animate(){
+  requestAnimationFrame(animate);
+  if(gs!=='playing')return;
+  const dt=Math.min(clock.getDelta(),0.05);
+
+  // Spawn enemies
+  if(waveActive&&WAVES[waveIndex]){
+    spawnTimer+=dt;
+    const spawnInterval=waveIndex===0?2.5:1.8;
+    if(spawnTimer>spawnInterval&&spawnedCount<WAVES[waveIndex].types.length){
+      spawnTimer=0;spawnNextEnemy();
+    }
+  }
+
+  updatePlayer(dt);
+  updateEnemies(dt);
+  updateProjectiles(dt);
+  updateParticles(dt);
+  renderer.render(scene,camera);
+}
+animate();
+
+// ===================== MENUS =====================
+function showCS(){
+  document.getElementById('sTitle').style.display='none';
+  document.getElementById('sChar').style.display='flex';
+  buildCharGrid();
+}
+
+function buildCharGrid(){
+  const grid=document.getElementById('cgrid');
+  grid.innerHTML='';
+  Object.keys(CHARS).forEach(key=>{
+    const c=CHARS[key];
+    const d=document.createElement('div');
+    d.className='cc';
+    d.style.setProperty('--cc',c.color);
+    d.style.setProperty('--cc-a',c.color+'44');
+    d.style.setProperty('--cc-bg',c.color+'11');
+    d.innerHTML=`
+      <div class="ico" style="background:${c.color}22;border-color:${c.color}">${c.emoji}</div>
+      <div class="cname">${c.name}</div>
+      <div class="grade">${c.grade.toUpperCase()}</div>
+      <div class="tech">${c.q.name}</div>
+    `;
+    d.onclick=()=>selectChar(key,d);
+    grid.appendChild(d);
+  });
+}
+
+function selectChar(key,el){
+  document.querySelectorAll('.cc').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel');
+  selectedChar=key;
+  const c=CHARS[key];
+  document.getElementById('cdetN').textContent=c.name;
+  document.getElementById('cdetT').textContent=c.title;
+  document.getElementById('cdetD').textContent=c.desc;
+  const am=document.getElementById('cdetA');
+  am.innerHTML='';
+  if(c.passive){
+    const t=document.createElement('span');t.className='atag passive';t.textContent=c.passive;am.appendChild(t);
+  }
+  const tq=document.createElement('span');tq.className='atag q';tq.textContent=`Q: ${c.q.name} — ${c.q.desc}`;am.appendChild(tq);
+  const te=document.createElement('span');te.className='atag e';te.textContent=`E: ${c.e.name} — ${c.e.desc}`;am.appendChild(te);
+  document.getElementById('cdet').style.display='block';
+  document.getElementById('sfbtn').style.display='block';
+}
+
+function startGame(){
+  if(!selectedChar)return;
+  document.getElementById('sChar').style.display='none';
+
+  // Show HUD
+  document.getElementById('hud').style.display='block';
+  const c=CHARS[selectedChar];
+  document.getElementById('cln').textContent=c.name;
+  document.getElementById('clt').textContent=c.title;
+  document.getElementById('cdQn').textContent=c.q.name;
+  document.getElementById('cdEn').textContent=c.e.name;
+
+  initPlayer(selectedChar);
+  gs='playing';
+  startWave(0);
+}
+
+// ===================== UTILS =====================
+function dist(x1,z1,x2,z2){return Math.sqrt((x2-x1)**2+(z2-z1)**2)}
+</script>
+</body>
+</html>
